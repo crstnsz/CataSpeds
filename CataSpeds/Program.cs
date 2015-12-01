@@ -12,15 +12,28 @@ namespace CataSpeds
         static long contador = 0;
         static DateTime check = DateTime.Now;
 
-        static void Main(string[] args)
+        static void Main_(string[] args)
         {
             //long fileSize = ProcuraEmSubdir(@"\\srv-ts2\REPOSITORIO4\REINTEGRA\CLIENTES\Aker\SPED Fiscal");
-            
-            long fileSize = ProcuraEmSubdir(@"\\srv-ts2\REPOSITORIO4\REINTEGRA\CLIENTES", true);
+
+            long fileSize = ProcuraEmSubdir(@"\\drb-web2.becomex.corp\E$", true);
             //fileSize += ProcuraEmSubdir(@"\\srv-ts2\REPOSITORIO4", true);
 
             Print(fileSize);
                         
+            Console.ReadLine();
+
+        }
+
+        static void Main(string[] args)
+        {
+            //long fileSize = ProcuraEmSubdir(@"\\srv-ts2\REPOSITORIO4\REINTEGRA\CLIENTES\Aker\SPED Fiscal");
+
+            long fileSize = CadeMeuSped(@"\\drb-web2.becomex.corp\E$\", true, "17469701002897");
+            //fileSize += ProcuraEmSubdir(@"\\srv-ts2\REPOSITORIO4", true);
+
+            Print(fileSize);
+
             Console.ReadLine();
 
         }
@@ -66,6 +79,66 @@ namespace CataSpeds
                             fileSize += new FileInfo(arquivo).Length;
 
                             File.Copy(arquivo, Path.Combine(@"E:\ENTRADA\_PENDENTES", Path.GetFileNameWithoutExtension(arquivo) + (++contador).ToString() + Path.GetExtension(arquivo)));
+                        }
+                    }
+                }
+
+                foreach (var arquivo in Directory.GetFiles(diretorioRaiz, "*SPED*.ZIP"))
+                {
+                    File.Copy(arquivo, Path.Combine(@"E:\SPED", Path.GetFileNameWithoutExtension(arquivo) + (++contador).ToString() + Path.GetExtension(arquivo)));
+                }
+
+                foreach (var arquivo in Directory.GetFiles(diretorioRaiz, "*SPED*.RAR"))
+                {
+                    File.Copy(arquivo, Path.Combine(@"E:\SPED", Path.GetFileNameWithoutExtension(arquivo) + (++contador).ToString() + Path.GetExtension(arquivo)));
+                }
+
+
+            }
+            catch (PathTooLongException exp)
+            {
+
+            }
+
+            return fileSize;
+
+        }
+
+
+        static long CadeMeuSped(string diretorioRaiz, bool first, string cnpj)
+        {
+            long fileSize = 0;
+            try
+            {
+                string[] dir = Directory.GetDirectories(diretorioRaiz);
+
+                foreach (var item in dir)
+                {
+                    if (first)
+                        Console.WriteLine(item);
+                    fileSize += CadeMeuSped(item, false, cnpj);
+
+                    if (first)
+                        Print(fileSize);
+
+                    if (DateTime.Now.Subtract(check).TotalMinutes > 1)
+                    {
+                        check = DateTime.Now;
+                        Console.WriteLine(item);
+                    }
+                }
+
+                string[] arquivos = Directory.GetFiles(diretorioRaiz, "*.txt");
+
+                foreach (var arquivo in arquivos)
+                {
+                    using (StreamReader sr = new StreamReader(arquivo))
+                    {
+                        string line = sr.ReadLine();
+                        if (line.StartsWith("|"))
+                        {
+                            if (line.Contains(cnpj))
+                                Console.WriteLine(arquivo);
                         }
                     }
                 }
