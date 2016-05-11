@@ -20,23 +20,63 @@ namespace ContaArquivos
 
         static void Main(string[] args)
         {
-            ProcuraEmSubdir("C:/");
-            ProcuraEmSubdir("E:/");
+            //ProcuraEmSubdir("C:/");
+            //ProcuraEmSubdir("E:/");
+
+            ProcuraLog(@"\\srv-web\e$\Ambientes\TP");
+            ProcuraLog(@"\\srv-web2\Ambientes\TP");
 
 
-            string[] linhas = new string[armazen.Count];
-            int i = 0;
-            foreach (var item in armazen)
-                linhas[i++] = string.Format("Tipo {0} Quantidade {1} Tamanho {2}", item.Key, item.Value.Contar, item.Value.Tamanho);
+            //string[] linhas = new string[armazen.Count];
+            //int i = 0;
+            //foreach (var item in armazen)
+            //    linhas[i++] = string.Format("Tipo {0} Quantidade {1} Tamanho {2}", item.Key, item.Value.Contar, item.Value.Tamanho);
 
-            File.AppendAllLines("resumo.txt", linhas);
+            //File.AppendAllLines("resumo.txt", linhas);
 
-
+            Console.WriteLine("Acabou....");
             Console.ReadLine();
+
+        }
+        static void ProcuraLog(string diretorioRaiz)
+        {
+            Console.Write(".");
+
+            string[] arquivos = new string[] { };
+            try
+            {
+                arquivos = Directory.GetFiles(diretorioRaiz, "*.log");
+
+                string[] arquivosLog = new string[arquivos.Length];
+                int i = 0;
+                foreach (var arq in arquivos)
+                    arquivosLog[i++] = string.Format("{0}; {1}" + Environment.NewLine, arq, new FileInfo(arq).Length);
+
+                File.AppendAllLines("arquivosLog.csv", arquivosLog);
+
+                string[] diretorios = new string[] { };
+
+                try
+                {
+                    diretorios = Directory.GetDirectories(diretorioRaiz);
+
+                    foreach (var dir in diretorios)
+                        ProcuraLog(dir);
+                }
+                catch
+                {
+
+                }
+            }
+            catch
+            {
+
+            }
         }
 
-        static void  ProcuraEmSubdir(string diretorioRaiz)
+        static void ProcuraEmSubdir(string diretorioRaiz)
         {
+
             long fileSize = 0;
             try
             {

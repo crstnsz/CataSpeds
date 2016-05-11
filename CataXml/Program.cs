@@ -1,24 +1,179 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace CataXml
 {
     class Program
     {
+        static int reindex = 0;
+
+        private static void MoverSemSubstituir(string de, string para)
+        {
+            string original = para;
+            try
+            {
+                while (File.Exists(para))
+                    para = Path.Combine(Path.GetDirectoryName(original), Path.GetFileNameWithoutExtension(original) + (++reindex).ToString() + Path.GetExtension(original));
+                File.Move(de, para);
+            }
+            catch (Exception exp)
+            {
+                Console.WriteLine(exp.Message);
+                Console.WriteLine("DE:" + de);
+                Console.WriteLine("PARA:" + para);
+                Console.ReadLine();
+            }
+
+            while (Directory.GetFiles(Path.GetDirectoryName(para)).Length > 1000)
+            {
+                Console.WriteLine("Aguardando processar");
+                System.Threading.Thread.Sleep(30000);
+            }
+
+        }
+
+        enum PraOnde
+        {
+            Nfe,
+            Evento,
+            FicaAi
+        }
+
+        private static PraOnde Vai(XmlNodeList list)
+        {
+            foreach (XmlNode no in list)
+//              if (no.LocalName == "procEventoNFe")
+//                    return PraOnde.Evento;
+//                else 
+                if (no.LocalName == "nfeProc")
+                    return PraOnde.Nfe;
+            return PraOnde.FicaAi;
+
+        }
         HashSet<string> diretoriosEncontrados = new HashSet<string>();
-        static long contador = 0;
         static DateTime check = DateTime.Now;
+        static bool BuscarEMover(string caminho)
+        {
+            Console.WriteLine("Buscando em " + caminho);
+            string[] files2 = Directory.GetFiles(caminho, "*.xml");
+            Console.WriteLine("Achei " + files2.Length);
+
+            DateTime aliviaAi = DateTime.Now;
+            int proc = 0;
+            foreach (var item in files2)
+            {
+                Console.WriteLine("Abrindo..." + item);
+                try
+                {
+
+                    if (DateTime.Now.Hour > 14 && DateTime.Now.Hour < 19)
+                    {
+                        if (proc > 0 && DateTime.Now.Subtract(aliviaAi).TotalMilliseconds > 1000)
+                        {
+                            System.Threading.Thread.Sleep(500);
+                            Console.WriteLine("Aliviando o lado da galera");
+                            aliviaAi = DateTime.Now;
+                        }
+                    }
+
+                    XmlDocument doc = new XmlDocument();
+
+                    doc.Load(item);
+
+
+                    switch (Vai(doc.ChildNodes))
+                    {
+                        case PraOnde.Evento:
+                            MoverSemSubstituir(item, Path.Combine(PastaCce, Path.GetFileName(item)));
+                            break;
+                        case PraOnde.Nfe:
+                            proc++;
+                            MoverSemSubstituir(item, Path.Combine(PastaNfe, Path.GetFileName(item)));
+                            break;
+                    }
+                }
+                catch (Exception exp)
+                {
+                    Console.WriteLine("Falha: " + exp.Message);
+                }
+
+            }
+
+
+
+            string[] dirs = null;
+
+            for (;;)
+            {
+                try
+                {
+                    dirs = Directory.GetDirectories(caminho);
+                    break;
+                }
+                // Em caso de queda na rede espera voltar e tenta novamente
+                catch (DirectoryNotFoundException dexp)
+                {
+                    Console.WriteLine("EXP: " + dexp.Message);
+                    System.Threading.Thread.Sleep(60000);
+                }
+                catch (UnauthorizedAccessException uaexp)
+                {
+                    File.AppendAllText("ErrosAcesso.txt", @"
+===================================================================================
+" + caminho + @"
+" + uaexp.Message + @"
+" + uaexp.StackTrace + @"
+===================================================================================");
+                }
+                catch (PathTooLongException ptlexp)
+                {
+                    File.AppendAllText("ErrosAcesso.txt", @"
+===================================================================================
+" + caminho + @"
+" + ptlexp.Message + @"
+" + ptlexp.StackTrace + @"
+===================================================================================");
+                }
+            }
+
+            foreach (var item in dirs)
+            {
+                if (BuscarEMover(item))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static string PastaNfe;
+        private static string PastaCce;
 
         static void Main(string[] args)
         {
-            long fileSize = 0;
-            fileSize += ProcuraEmSubdir(@"C:\", true);
-            fileSize += ProcuraEmSubdir(@"E:\", true);
-            Print(fileSize);
+            Console.WriteLine("Procura XML 2.0.0.0");
+
+            //Task pdf = new Task(() => 
+            // IgnorandoPDF(ConfigurationManager.AppSettings["PASTA_ORIGEM"], true);
+            // IgnorandoDescompactandoZip(ConfigurationManager.AppSettings["PASTA_ORIGEM"], true);
+            //    )
+            ;
+
+            PastaNfe = Path.Combine(ConfigurationManager.AppSettings["PASTA_DESTINO"], "NFE");
+            PastaCce = Path.Combine(ConfigurationManager.AppSettings["PASTA_DESTINO"], "CCE");
+            Directory.CreateDirectory(PastaNfe);
+            Directory.CreateDirectory(PastaCce);
+            //BuscarEMover(@"\\srv-ts2.becomex.corp\e$");
+            BuscarEMover(@"\\srv-web\e$\Ambientes\TP");
+            BuscarEMover(@"\\srv-web2\Ambientes\TP");
+            //BuscarEMover(@"\\srv-ts2.becomex.corp\c$");
+            BuscarEMover(@"\\becomex-superhp\Repositório");
+            Console.WriteLine("Terminou");
             Console.ReadLine();
 
 
@@ -36,7 +191,7 @@ namespace CataXml
             long fileSize = 0;
             try
             {
-                string[] arquivos = Directory.GetFiles(diretorioRaiz, "*.dmp");
+                string[] arquivos = Directory.GetFiles(diretorioRaiz, "*.xml");
                 if (arquivos.Length > 0)
                     File.AppendAllText("E:/Tmp/lista_dmp.txt", diretorioRaiz + Environment.NewLine);
 
