@@ -12,8 +12,8 @@ namespace Alimenta
 {
     class Program
     {
-        const int COPIAR = 40;
-        const int COMPLETAR = 5;
+        const int COPIAR = 400;
+        const int COMPLETAR = 100;
 
         private static bool IniciarCopia(string caminho)
         {
@@ -92,7 +92,7 @@ namespace Alimenta
         //        {
 
         //            string nomeArquivo = Path.Combine(ConfigurationManager.AppSettings["PASTA_PDF"], Path.GetFileName(item));
-                    
+
 
         //            File.Move(item, NomeNaoDuplicado(nomeArquivo));
 
@@ -134,12 +134,26 @@ namespace Alimenta
 
                     doc.Load(item);
 
-                    if (doc.SelectSingleNode("procEventoNFe") != null)
+                    foreach (XmlNode xmlNode in doc.ChildNodes)
                     {
-                        File.Move(item, Path.Combine(PastaCce, Path.GetFileName(item)));
+                        if (xmlNode.LocalName == "procEventoNFe")
+                            File.Move(item, Path.Combine(PastaCce, Path.GetFileName(item)));
+                        else if (xmlNode.LocalName == "nfeProc")
+                            File.Move(item, Path.Combine(PastaNfe, Path.GetFileName(item)));
+                        else if (xmlNode.LocalName == "cteProc")
+                        {
+                            int i = 1;
+                            string file = Path.Combine(PastaCte, Path.GetFileName(item));
+                            string newFile = file;
+                            while (File.Exists(newFile))
+                                newFile = Path.Combine(Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file) + i.ToString() + Path.GetExtension(file));
+
+                            if (file != newFile)
+                                file = newFile;
+
+                            File.Move(item, file);
+                        }
                     }
-                    else if (doc.SelectSingleNode("nfeProc") != null)
-                        File.Move(item, Path.Combine(PastaNfe, Path.GetFileName(item)));
 
 
                     //if (Path.GetExtension(item).ToLower() == ".zip" || Path.GetExtension(item).ToLower() == ".pdf")
@@ -169,24 +183,23 @@ namespace Alimenta
 
         private static string PastaNfe;
         private static string PastaCce;
+        private static string PastaCte;
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Alimenta 1.8.0.0");
+            Console.WriteLine("Alimenta 1.9.9.0");
 
             //Task pdf = new Task(() => 
             // IgnorandoPDF(ConfigurationManager.AppSettings["PASTA_ORIGEM"], true);
             // IgnorandoDescompactandoZip(ConfigurationManager.AppSettings["PASTA_ORIGEM"], true);
             //    )
-             ;
+            ;
 
-            if (!Directory.Exists(ConfigurationManager.AppSettings["PASTA_DESTINO"]))
-            {
-                PastaNfe = Path.Combine(ConfigurationManager.AppSettings["PASTA_DESTINO"], "NFE");
-                PastaCce = Path.Combine(ConfigurationManager.AppSettings["PASTA_DESTINO"], "CCE");
-                Directory.CreateDirectory(PastaNfe);
-                Directory.CreateDirectory(PastaCce);
-            }
+
+            PastaNfe =ConfigurationManager.AppSettings["PASTA_DESTINO"];
+            PastaCce = ConfigurationManager.AppSettings["PASTA_DESTINO"];
+            PastaCte = ConfigurationManager.AppSettings["PASTA_CTE"];
+
 
 
             DateTime ultimaExecucao = DateTime.Now;
@@ -194,7 +207,7 @@ namespace Alimenta
             for (;;)
             {
                 if (IniciarCopia(ConfigurationManager.AppSettings["PASTA_PENDENTE"]))
-                    //&& !TemArquivo(ConfigurationManager.AppSettings["PASTA_PENDENTE"]))
+                //&& !TemArquivo(ConfigurationManager.AppSettings["PASTA_PENDENTE"]))
                 {
                     BuscarEMover(ConfigurationManager.AppSettings["PASTA_ORIGEM"], 0);
                     ultimaExecucao = DateTime.Now;

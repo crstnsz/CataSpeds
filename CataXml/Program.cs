@@ -13,14 +13,17 @@ namespace CataXml
     {
         static int reindex = 0;
 
-        private static void MoverSemSubstituir(string de, string para)
+        private static void MoverSemSubstituir(string de, string para, bool copiar)
         {
             string original = para;
             try
             {
                 while (File.Exists(para))
                     para = Path.Combine(Path.GetDirectoryName(original), Path.GetFileNameWithoutExtension(original) + (++reindex).ToString() + Path.GetExtension(original));
-                File.Move(de, para);
+                if (copiar)
+                    File.Copy(de, para);
+                else
+                    File.Move(de, para);
             }
             catch (Exception exp)
             {
@@ -58,10 +61,19 @@ namespace CataXml
         }
         HashSet<string> diretoriosEncontrados = new HashSet<string>();
         static DateTime check = DateTime.Now;
-        static bool BuscarEMover(string caminho)
+        static bool BuscarEMover(string caminho, bool copiar)
         {
             Console.WriteLine("Buscando em " + caminho);
-            string[] files2 = Directory.GetFiles(caminho, "*.xml");
+            string[] files2 = null;
+            try
+            {
+                files2 = Directory.GetFiles(caminho, "*.xml");
+            }
+            catch(Exception exp)
+            {
+                Console.WriteLine("Falha: " + exp.Message);
+                return true;
+            }
             Console.WriteLine("Achei " + files2.Length);
 
             DateTime aliviaAi = DateTime.Now;
@@ -90,11 +102,11 @@ namespace CataXml
                     switch (Vai(doc.ChildNodes))
                     {
                         case PraOnde.Evento:
-                            MoverSemSubstituir(item, Path.Combine(PastaCce, Path.GetFileName(item)));
+                            MoverSemSubstituir(item, Path.Combine(PastaCce, Path.GetFileName(item)), copiar);
                             break;
                         case PraOnde.Nfe:
                             proc++;
-                            MoverSemSubstituir(item, Path.Combine(PastaNfe, Path.GetFileName(item)));
+                            MoverSemSubstituir(item, Path.Combine(PastaNfe, Path.GetFileName(item)), copiar);
                             break;
                     }
                 }
@@ -144,7 +156,9 @@ namespace CataXml
 
             foreach (var item in dirs)
             {
-                if (BuscarEMover(item))
+                if (Path.GetFileName(item) == "System Volume Information")
+                    continue;
+                if (BuscarEMover(item, copiar))
                     return true;
             }
 
@@ -158,23 +172,36 @@ namespace CataXml
         {
             Console.WriteLine("Procura XML 2.0.0.0");
 
-            //Task pdf = new Task(() => 
-            // IgnorandoPDF(ConfigurationManager.AppSettings["PASTA_ORIGEM"], true);
-            // IgnorandoDescompactandoZip(ConfigurationManager.AppSettings["PASTA_ORIGEM"], true);
-            //    )
-            ;
+            try
+            {
 
-            PastaNfe = Path.Combine(ConfigurationManager.AppSettings["PASTA_DESTINO"], "NFE");
-            PastaCce = Path.Combine(ConfigurationManager.AppSettings["PASTA_DESTINO"], "CCE");
-            Directory.CreateDirectory(PastaNfe);
-            Directory.CreateDirectory(PastaCce);
-            //BuscarEMover(@"\\srv-ts2.becomex.corp\e$");
-            BuscarEMover(@"\\srv-web\e$\Ambientes\TP");
-            BuscarEMover(@"\\srv-web2\Ambientes\TP");
-            //BuscarEMover(@"\\srv-ts2.becomex.corp\c$");
-            BuscarEMover(@"\\becomex-superhp\Repositório");
-            Console.WriteLine("Terminou");
-            Console.ReadLine();
+                //Task pdf = new Task(() => 
+                // IgnorandoPDF(ConfigurationManager.AppSettings["PASTA_ORIGEM"], true);
+                // IgnorandoDescompactandoZip(ConfigurationManager.AppSettings["PASTA_ORIGEM"], true);
+                //    )
+                ;
+
+                PastaNfe = Path.Combine(ConfigurationManager.AppSettings["PASTA_DESTINO"], "NFE");
+                PastaCce = Path.Combine(ConfigurationManager.AppSettings["PASTA_DESTINO"], "CCE");
+                Directory.CreateDirectory(PastaNfe);
+                Directory.CreateDirectory(PastaCce);
+                Directory.CreateDirectory(PastaCce);
+                BuscarEMover(@"\\becomex.corp\", false);
+                //BuscarEMover(@"\\becomex.corp\e$", false);
+                //BuscarEMover(@"\\srv-web\e$\Ambientes\TP", true);
+                //BuscarEMover(@"\\srv-web2\Ambientes\TP", true);
+                BuscarEMover(@"\\srv-ts2.becomex.corp\c$", false);
+                BuscarEMover(@"\\becomex-superhp\Repositório", true);
+                Console.WriteLine("Terminou");
+                Console.ReadLine();
+
+            }
+            catch(Exception exp)
+            {
+                Console.WriteLine(exp.Message);
+                Console.WriteLine(exp.StackTrace);
+                Console.ReadLine();
+            }
 
 
         }

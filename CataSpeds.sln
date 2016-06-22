@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CataSpeds", "CataSpeds\CataSpeds.csproj", "{B909CA95-FB86-4DD9-88F0-8A0195E412B8}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcuraNoLog", "ProcuraNoLog\ProcuraNoLog.csproj", "{5480F2FE-78C5-4805-852E-C7C0F64594C1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcSPED", "ProcSPED\ProcSPED.csproj", "{565FFF3B-824A-4FD7-92CC-370621A7378C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SepararErros", "SepararErros\SepararErros.csproj", "{73F96C47-8377-4CCE-8E93-EBB58386FD6A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{565FFF3B-824A-4FD7-92CC-370621A7378C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{565FFF3B-824A-4FD7-92CC-370621A7378C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{565FFF3B-824A-4FD7-92CC-370621A7378C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73F96C47-8377-4CCE-8E93-EBB58386FD6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73F96C47-8377-4CCE-8E93-EBB58386FD6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73F96C47-8377-4CCE-8E93-EBB58386FD6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73F96C47-8377-4CCE-8E93-EBB58386FD6A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

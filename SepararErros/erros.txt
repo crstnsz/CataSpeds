@@ -1,0 +1,2 @@
+﻿ORA-01653 unable to extend table REPFIS.NFE_IMPOSTO_IPI by 8192 in tablespace REPFIS_DATA
+Não há suporte para essa versão de NFe. Versão: 1.10
